@@ -21,7 +21,8 @@ homeassistant/wunderground/state
 It reads the `temp` and `cond` fields from the JSON payload. The AWTRIX
 internal temperature sensor supplies the indoor baseline. The `ha_topic` and
 `celsius` settings are available in the AWTRIX app configuration; Fahrenheit is
-the default.
+the default. The displayed temperature alternates every two seconds: outdoor is
+white and indoor is green.
 
 ## Installation
 

@@ -1,12 +1,12 @@
 # @name    Clock Temp
 # @desc    Clock, outdoor Fahrenheit temperature and indoor/outdoor differential
 # @author  Duv McIntyre
-# @version 1.1
+# @version 1.2
 # @config ha_topic text "Home Assistant MQTT topic" default="homeassistant/wunderground/state" maxlen=96
 # @config celsius bool "Use Celsius" default=false
 
 class ClockTemp
-  var outdoor, indoor, diff, condition, celsius
+  var outdoor, indoor, diff, condition, celsius, show_indoor, toggle_ticks
 
   def init()
     self.outdoor = nil
@@ -14,6 +14,8 @@ class ClockTemp
     self.diff = nil
     self.condition = "unknown"
     self.celsius = store.get("celsius")
+    self.show_indoor = false
+    self.toggle_ticks = 0
   end
 
   def set_weather(payload)
@@ -40,6 +42,11 @@ class ClockTemp
     if c != nil
       self.indoor = self.celsius ? c : c * 1.8 + 32
       if self.outdoor != nil self.diff = self.outdoor - self.indoor end
+    end
+    self.toggle_ticks += 1
+    if self.toggle_ticks >= 2
+      self.show_indoor = !self.show_indoor
+      self.toggle_ticks = 0
     end
   end
 
@@ -90,9 +97,10 @@ class ClockTemp
     var m = minute()
     var mm = m < 10 ? "0" + str(m) : str(m)
     var s = str(h) + ":" + mm
-    if self.outdoor != nil s = s + " " + str(int(round(self.outdoor))) + (self.celsius ? "C" : "F") end
+    var temp = self.show_indoor ? self.indoor : self.outdoor
+    if temp != nil s = s + " " + str(int(round(temp))) + (self.celsius ? "C" : "F") end
     self.draw_condition()
-    text(0, 6, s, settings.get("textColor"))
+    text(0, 6, s, self.show_indoor ? 0x00FF00 : 0xFFFFFF)
 
     var x = 0
     while x < width()
